@@ -11,6 +11,7 @@ public class Keyscript : MonoBehaviour
         {
             followerscript.enabled = true;
             this.enabled = false;
+            collision.GetComponent<Playercontrollerscript>().haskey = true;
         }
     }
 }
