@@ -19,13 +19,15 @@ public class ReverseSpikeScript : MonoBehaviour
         while(duration > -1)
         {
             gameObject.transform.localScale = new Vector3(gameObject.transform.localScale.x, duration, gameObject.transform.localScale.x);
-            duration -= Time.deltaTime*0.5f;
+            duration -= Time.deltaTime*10;
+            yield return new WaitForEndOfFrame();
         }
         yield return new WaitForSeconds(turnduration);
         while (duration < 1)
         {
             gameObject.transform.localScale = new Vector3(gameObject.transform.localScale.x, duration, gameObject.transform.localScale.x);
-            duration += Time.deltaTime*0.5f;
+            duration += Time.deltaTime*10;
+            yield return new WaitForEndOfFrame();
         }
         timergoing = false;
     }

@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 
 public class Playercontrollerscript : MonoBehaviour
 {
+    // ZATRZYMYWANIE PRZY UDERZENIU ŒCIANY
     public InputActionReference moveinputaccess;
     public InputActionReference jumpinput;
     public float moveinput;
@@ -15,6 +16,11 @@ public class Playercontrollerscript : MonoBehaviour
     public int jumpcount;
     public bool jumping = false;
     public float jumptemp = 0;
+    public float jumpbuffer;
+    public bool grounded;
+    public bool walljumping;
+    public int consecutivewalljumps;
+    public int walljumpvalue;
     public float outsideforcehoriz;
     public float friction;
     public bool haskey = false;
@@ -34,13 +40,66 @@ public class Playercontrollerscript : MonoBehaviour
             jumping = true;
         }
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.66f, groundlayer);
+        RaycastHit2D hit1 = Physics2D.Raycast(transform.position + new Vector3(-0.5f, 0, 0), Vector2.down, 0.66f, groundlayer);
+        RaycastHit2D hit2 = Physics2D.Raycast(transform.position + new Vector3(0.5f, 0, 0), Vector2.down, 0.66f, groundlayer);
         if (hit.collider != null && jumping == false)
         {
+            grounded = true;
             jumpcount = jumpcountbase;
-            if (hit.collider.gameObject.GetComponent<BoxCollider2D>() != null)
+            if (hit.collider.gameObject.GetComponent<BoxCollider2D>() != null && hit.collider.gameObject.GetComponent<BoxCollider2D>().sharedMaterial != null)
             {
                 friction = hit.collider.gameObject.GetComponent<BoxCollider2D>().sharedMaterial.friction;
             }
+        }
+        else if (hit1.collider != null && jumping == false)
+        {
+            grounded = true;
+            jumpcount = jumpcountbase;
+            if (hit1.collider.gameObject.GetComponent<BoxCollider2D>() != null && hit1.collider.gameObject.GetComponent<BoxCollider2D>().sharedMaterial != null)
+            {
+                friction = hit1.collider.gameObject.GetComponent<BoxCollider2D>().sharedMaterial.friction;
+            }
+        }
+        else if (hit2.collider != null && jumping == false)
+        {
+            grounded = true;
+            jumpcount = jumpcountbase;
+            if (hit2.collider.gameObject.GetComponent<BoxCollider2D>() != null && hit2.collider.gameObject.GetComponent<BoxCollider2D>().sharedMaterial != null)
+            {
+                friction = hit2.collider.gameObject.GetComponent<BoxCollider2D>().sharedMaterial.friction;
+            }
+        }
+        else
+        {
+            if (grounded == true)
+            {
+                StartCoroutine(Jumpbuffer());
+                grounded = false;
+            }
+        }
+        /*RaycastHit2D hitleft = Physics2D.Raycast(transform.position, Vector2.left, 0.55f, groundlayer);
+        RaycastHit2D hitright = Physics2D.Raycast(transform.position, Vector2.right, 0.55f, groundlayer);
+        if(((hitleft.collider != null && moveinput == -1) || (hitright.collider != null && moveinput == 1)) && hit.collider == null)
+        {
+            walljumping = true;
+            jumpcount = 1;
+            if (jumpinput.action.WasPressedThisFrame())
+            {
+                consecutivewalljumps += 1;
+            }
+        }
+        else
+        {
+            consecutivewalljumps = 1;
+            walljumping = false;
+        }*/
+        if(walljumpvalue == 0)
+        {
+            walljumping = false;
+        }
+        if (jumpinput.action.IsPressed() && jumptemp != 0 && jumptemp < jumpforce && rb.velocity.y==0)
+        {
+            jumptemp = 0;
         }
     }
     private void FixedUpdate()
@@ -49,7 +108,14 @@ public class Playercontrollerscript : MonoBehaviour
         {
             outsideforcehoriz = previousInput * movespeed * Time.deltaTime * 40;
         }
-        rb.velocity = new Vector2((moveinput * movespeed * Time.deltaTime) + (outsideforcehoriz * Time.deltaTime), rb.velocity.y);
+        if (walljumping)
+        {
+            rb.velocity = new Vector2((0) + (outsideforcehoriz * Time.deltaTime), rb.velocity.y);
+        }
+        else
+        {
+            rb.velocity = new Vector2((moveinput * movespeed * Time.deltaTime) + (outsideforcehoriz * Time.deltaTime), rb.velocity.y);
+        }
         previousInput = moveinput;
         if (Mathf.Abs(outsideforcehoriz) > 0)
         {
@@ -78,8 +144,17 @@ public class Playercontrollerscript : MonoBehaviour
             }
             else
             {
+                rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.6f);
                 jumping = false;
             }
+        }
+    }
+    public IEnumerator Jumpbuffer()
+    {
+        yield return new WaitForSeconds(jumpbuffer);
+        if(jumpcount == jumpcountbase)
+        {
+            jumpcount -= 1;
         }
     }
 }
