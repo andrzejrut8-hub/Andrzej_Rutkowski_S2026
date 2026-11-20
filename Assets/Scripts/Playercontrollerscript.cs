@@ -93,13 +93,21 @@ public class Playercontrollerscript : MonoBehaviour
             consecutivewalljumps = 1;
             walljumping = false;
         }*/
-        if(walljumpvalue == 0)
+        if(walljumpvalue == 0 || walljumpvalue!=moveinput)
         {
             walljumping = false;
         }
         if (jumpinput.action.IsPressed() && jumptemp != 0 && jumptemp < jumpforce && rb.velocity.y==0)
         {
             jumptemp = 0;
+        }
+        if(moveinput == walljumpvalue)
+        {
+            moveinput = 0;
+            if (walljumping)
+            {
+                outsideforcehoriz = 0;
+            }
         }
     }
     private void FixedUpdate()
@@ -110,7 +118,7 @@ public class Playercontrollerscript : MonoBehaviour
         }
         if (walljumping)
         {
-            rb.velocity = new Vector2((0) + (outsideforcehoriz * Time.deltaTime), rb.velocity.y);
+            rb.velocity = new Vector2(0, rb.velocity.y);
         }
         else
         {
